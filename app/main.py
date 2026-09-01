@@ -9,3 +9,8 @@ livros = ["noites brancas", "a metamorfose", "crime e castigo"]
 async def home():
     return {"message": "bem vindo a bookstore!"}
 
+#listar livros 
+@app.get ("/livros")
+async def listar_livros ():
+    return {"livros" : livros}
+    
