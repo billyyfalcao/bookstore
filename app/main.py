@@ -1,4 +1,4 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
@@ -34,5 +34,9 @@ async def remover_livros (indicie:int):
 @app.put ("/atualizar livros")
 async def atualizar_livros (indicie:int, new_livro: str):
     livros [indicie] = new_livro
+
+    if indicie > len (livros) or indicie < 0:
+         raise HTTPException (status_code=404, detail= "coloca oto")
+
 
     return {"message": f"Livro ' {new_livro}' atualizado com sucesso!"}
