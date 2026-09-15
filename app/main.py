@@ -1,9 +1,13 @@
 from fastapi import FastAPI, HTTPException
-
+from app.schemas.livro import LivroSchema
 app = FastAPI()
 
+livros = [
+     LivroSchema(id=1, titulo="homem aranha", autor= "seila", ano_publicacao="2026"),
+      LivroSchema(id=1, titulo="homem de ferro", autor= "seinaoman", ano_publicacao="2016"),
 
-livros = ["noites brancas", "a metamorfose", "crime e castigo"]
+]
+
 
 @app.get("/")
 async def home():
