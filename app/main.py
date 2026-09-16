@@ -9,7 +9,7 @@ Base.metadata.create_all (bind = db)
 
 app = FastAPI()
 
-app.include_router (livros_route)
+app.include_router(livros_route.router)
 
 @app.get("/")
 async def home():
