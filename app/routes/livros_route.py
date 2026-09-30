@@ -1,47 +1,58 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
-from app.schemas.livro import LivroSchema
+from app.database.conection import SessionLocal, get_db
+from app.database.models import LivroModel
+from app.schemas.livro import LivroCreate, LivroSchema
+from app.services import livro_service
 
-router = APIRouter (
+router = APIRouter(
     prefix="/livros",
-    tags= ["livros"],
+    tags=["livros"],
 )
 
-#banco de dados
-livros = [
-     LivroSchema(id=1, titulo="homem aranha", autor= "seila", ano_publicacao="2026"),
-      LivroSchema(id=1, titulo="homem de ferro", autor= "seinaoman", ano_publicacao="2016"),
-
-]
-
-#listar livros 
-@router.get ("/")
-async def listar_livros ():
-    return {"livros" : livros}
-
-#adicionar livros 
-@router.post ("/")
-async def adicionar_livros (livro:LivroSchema):
-    livros.append(livro)
-
-    return {"message": f"livro '{livro}' adicionado com sucesso!"}
 
 
-#deletar livros 
-@router.delete ("/{index}")
-async def remover_livros (indicie:int):
-        removido = livros.pop(indicie)
-
-        return {"message": f"livro  '{removido}' removido com sucesso"}
-
-
-#atualizar livros 
-@router.put ("/{index}")
-async def atualizar_livros (indicie:int, livro:LivroSchema):
-    livros [indicie] = livro 
-
-    if indicie > len (livros) or indicie < 0:
-         raise HTTPException (status_code=404, detail= "coloca oto")
+@router.get("/")
+async def listar_livros():
+    db = SessionLocal()
+    livros = db.query(LivroModel).all()
+    db.close()
+    return {"livros": livros}
 
 
-    return {"message": f"Livro ' {livro}' atualizado com sucesso!"}
+@router.post("/")
+async def adicionar_livro(
+     livro: LivroCreate,
+     db:Session = Depends(get_db)):
+
+     return livro_service.adicionar_livro(db, livro)
+     
+
+
+@router.put("/{index}")
+async def atualizar_livro(
+     index: int,
+     livro: LivroCreate,
+     db: Session = Depends(get_db)
+     ):
+
+     livro_db = livro_service.atualizar_livro(index, livro, db)
+
+     if not livro_db:
+          raise HTTPException(status_code=404, detail="Livro não encontrado")
+
+     return livro_db
+
+@router.delete("/{index}")
+async def deletar_livro(
+     index: int,
+     db: Session = Depends(get_db)
+     ):
+
+     removido = livro_service.remover_livro(index, db)
+     db.close()
+     if not removido:
+        raise HTTPException(status_code=404, detail="Livro não encontrado")
+                              
+     return {"message": "Livro removido com sucesso"}
